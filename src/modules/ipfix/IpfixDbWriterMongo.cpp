@@ -341,6 +341,14 @@ mongo::BSONObj IpfixDbWriterMongo::getInsertObj(const IpfixRecord::SourceID& sou
 			}
 		} else {
 			/* Dump all elements to DB */
+
+			// dump exporter data
+			{
+				obj << "exportIPv4" << sourceID.exporterAddress.toUInt32();
+				obj << "exportTime" << sourceID.exportTime;
+			}
+
+
 			if(dataTemplateInfo.fieldCount > 0) {
 				// look in ipfix records
 				for(int k=0; k < dataTemplateInfo.fieldCount; k++) {
