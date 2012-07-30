@@ -154,6 +154,15 @@ extern "C" {
 #define PSAMP_TYPEID_observationTimeMilliSeconds    323
 #define PSAMP_TYPEID_observationTimeMicroSeconds    324
 
+// NetflowV9 legacy
+#define IPFIX_V9TYPEID_aggregatedFlows                3
+#define IPFIX_V9TYPEID_samplingInterval              34
+#define IPFIX_V9TYPEID_samplingAlgorithm             35
+#define IPFIX_V9TYPEID_engineType                    38
+#define IPFIX_V9TYPEID_engineID                      39
+#define IPFIX_V9TYPEID_flowSamplerID                 48
+#define IPFIX_V9TYPEID_flowSamplerMode               49
+#define IPFIX_V9TYPEID_flowSamplerRandomInterval     50
 
 #define IPFIX_PEN_reverse                           29305
 
@@ -308,6 +317,16 @@ extern "C" {
 #define IPFIX_ELENGTH_maxPacketGap					IPFIX_LENGTH_unsigned32
 #define IPFIX_ELENGTH_frontPayloadPktCount			IPFIX_LENGTH_unsigned32
 #define IPFIX_ELENGTH_anonymisationType				IPFIX_LENGTH_octet
+
+// Netflow v9 TYPEIDs
+#define IPFIX_V9LENGTH_aggregatedFlows              IPFIX_LENGTH_variable
+#define IPFIX_V9LENGTH_samplingAlgorithm            IPFIX_LENGTH_octet
+#define IPFIX_V9LENGTH_samplingInterval             IPFIX_LENGTH_unsigned32
+#define IPFIX_V9LENGTH_engineType                   IPFIX_LENGTH_octet
+#define IPFIX_V9LENGTH_engineID                     IPFIX_LENGTH_octet
+#define IPFIX_V9LENGTH_flowSamplerID                IPFIX_LENGTH_octet
+#define IPFIX_V9LENGTH_flowSamplerMode              IPFIX_LENGTH_octet
+#define IPFIX_V9LENGTH_flowSamplerRandomInterval    IPFIX_LENGTH_unsigned32
 
 #define MAX_MSG_LEN   65536
 
