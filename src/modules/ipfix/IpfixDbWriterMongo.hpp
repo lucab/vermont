@@ -116,7 +116,9 @@ class IpfixDbWriterMongo
 		void processDataDataRecord(const IpfixRecord::SourceID& sourceID, 
 				TemplateInfo& dataTemplateInfo, uint16_t length, 
 				IpfixRecord::Data* data);
-
+		void processOptionsDataRecord(IpfixRecord::SourceID* sourceID,
+				TemplateInfo& dataTemplateInfo, uint16_t length,
+				IpfixRecord::Data* data);
 		uint64_t getData(InformationElement::IeInfo type, IpfixRecord::Data* data);
 		bool equalExporter(const IpfixRecord::SourceID& a, const IpfixRecord::SourceID& b);
 

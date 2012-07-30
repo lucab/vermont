@@ -112,6 +112,37 @@ int IpfixDbWriterMongo::connectToDB()
 }
 
 /**
+ * look for exporter data options
+ * TODO: check for more data options
+ */
+void IpfixDbWriterMongo::processOptionsDataRecord(IpfixRecord::SourceID* sourceID,
+		TemplateInfo& dataTemplateInfo, uint16_t length,
+		IpfixRecord::Data* data)
+{
+	// For now we only decode per-exporter sampling rate
+	if(dataTemplateInfo.fieldCount > 0) {
+		// look in ipfix records
+		for(int k=0; k < dataTemplateInfo.fieldCount; k++) {
+				if (dataTemplateInfo.fieldInfo[k].type.id == IPFIX_V9TYPEID_samplingInterval) {
+					sourceID->samplingRate = getData(dataTemplateInfo.fieldInfo[k].type,(data+dataTemplateInfo.fieldInfo[k].offset));
+					msg(MSG_DEBUG, "IpfixDbWriter: Got sampling rate %lu from data record", (unsigned long) sourceID->samplingRate);
+					return;
+				}
+			}
+		}
+
+	if( dataTemplateInfo.dataCount > 0) {
+		// look in static data fields of template for data
+		for(int k=0; k < dataTemplateInfo.dataCount; k++) {
+			sourceID->samplingRate = getData(dataTemplateInfo.fieldInfo[k].type,(data+dataTemplateInfo.fieldInfo[k].offset));
+			msg(MSG_DEBUG, "IpfixDbWriter: Got sampling rate %lu from static field", (unsigned long) sourceID->samplingRate);
+			return;
+			}
+		}
+	return;
+}
+
+/**
  * save record to database
  */
 void IpfixDbWriterMongo::processDataDataRecord(const IpfixRecord::SourceID& sourceID,
@@ -161,7 +192,7 @@ void IpfixDbWriterMongo::processDataDataRecord(const IpfixRecord::SourceID& sour
  *	The result is written to BSON Object, and flowstart is returned
  */
 mongo::BSONObj IpfixDbWriterMongo::getInsertObj(const IpfixRecord::SourceID& sourceID,
-		TemplateInfo& dataTemplateInfo,uint16_t length, IpfixRecord::Data* data)
+		TemplateInfo& dataTemplateInfo, uint16_t length, IpfixRecord::Data* data)
 {
 	uint64_t intdata = 0;
 	uint64_t intdata2 = 0;
@@ -342,10 +373,11 @@ mongo::BSONObj IpfixDbWriterMongo::getInsertObj(const IpfixRecord::SourceID& sou
 		} else {
 			/* Dump all elements to DB */
 
-			// dump exporter data
+			// dump exporter meta-data
 			{
 				obj << "exportIPv4" << sourceID.exporterAddress.toUInt32();
 				obj << "exportTime" << sourceID.exportTime;
+				obj << "samplingRate" << sourceID.samplingRate;
 			}
 
 
@@ -485,19 +517,21 @@ uint64_t IpfixDbWriterMongo::getData(InformationElement::IeInfo type, IpfixRecor
  */
 void IpfixDbWriterMongo::onDataRecord(IpfixDataRecord* record)
 {
-	// only treat non-Options Data Records (although we cannot be sure that there is a Flow inside)
-	if((record->templateInfo->setId != TemplateInfo::NetflowTemplate)
-		&& (record->templateInfo->setId != TemplateInfo::IpfixTemplate)
-		&& (record->templateInfo->setId != TemplateInfo::IpfixDataTemplate)) {
-		record->removeReference();
-		return;
-	}
 
+	if ( (record->templateInfo->setId == TemplateInfo::NetflowOptionsTemplate) ||
+		 (record->templateInfo->setId == TemplateInfo::IpfixOptionsTemplate) ){
+		msg(MSG_DEBUG, "IpfixDbWriterMongo: Options Data record, internally kept");
+		processOptionsDataRecord(record->sourceID.get(), *record->templateInfo.get(),
+				record->dataLength, record->data);
+	} else {
+	// only treat non-Options Data Records (although we cannot be sure that there is a Flow inside)
 	msg(MSG_DEBUG, "IpfixDbWriterMongo: Data record received will be passed for processing");
 	processDataDataRecord(*record->sourceID.get(), *record->templateInfo.get(),
 			record->dataLength, record->data);
+	}
 
 	record->removeReference();
+	return;
 }
 
 /**

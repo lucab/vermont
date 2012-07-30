@@ -107,7 +107,8 @@ class IpfixRecord
 		 */
 		struct SourceID {
 			SourceID() : observationDomainId(0), sysUpTime(0), exportTime(0),
-			    exporterPort(0), receiverPort(0), protocol(0), fileDescriptor(0)
+			    exporterPort(0), receiverPort(0), protocol(0), fileDescriptor(0),
+			    samplingRate(1)
 			{
 				exporterAddress.len = 0;
 			}
@@ -137,6 +138,7 @@ class IpfixRecord
 			uint16_t receiverPort;
 			uint8_t protocol;
 			int fileDescriptor;
+			uint32_t samplingRate;
 
 			bool operator==(const struct SourceID & x) const {
 				if(protocol == 132) /* compare file descriptors instead of IP addresses because of possible multihoming */
