@@ -27,6 +27,8 @@
 #include <vector>
 #include "IpfixDbWriterMongo.hpp"
 #include "common/msg.h"
+#include <ctime>
+#include <boost/format.hpp>
 
 const IpfixDbWriterMongo::Property IpfixDbWriterMongo::identify [] = {
 	{CN_dstIP, 0, IPFIX_TYPEID_destinationIPv4Address, 0},
@@ -409,7 +411,14 @@ mongo::BSONObj IpfixDbWriterMongo::getInsertObj(const IpfixRecord::SourceID& sou
  */
 int IpfixDbWriterMongo::writeToDb()
 {
-  con.insert(dbCollectionFlows, bufferedObjects);
+  std::stringstream rotation("");
+  if (rotate) {
+	  time_t t = time(0);
+	  struct tm * now = localtime( & t );
+	  rotation << "." << (now->tm_year + 1900) << "-" << boost::format("%|02|")%(now->tm_mon + 1);
+
+  }
+  con.insert(dbCollectionFlows + rotation.str(), bufferedObjects);
   if(con.getLastError() != ""){
 		msg(MSG_FATAL, "IpfixDbWriterMongo: Failed to write to DB.");
     return 1;
@@ -540,10 +549,10 @@ void IpfixDbWriterMongo::onDataRecord(IpfixDataRecord* record)
 IpfixDbWriterMongo::IpfixDbWriterMongo(const string& hostname, const string& database,
 		const string& username, const string& password,
 		unsigned port, uint32_t observationDomainId, uint16_t maxStatements,
-		const vector<string>& propertyNames, bool beautifyProperties, bool allProperties)
+		const vector<string>& propertyNames, bool beautifyProperties, bool allProperties, bool monthlyRotate)
 	: currentExporter(NULL), numberOfInserts(0), maxInserts(maxStatements),
 	dbHost(hostname), dbName(database), dbUser(username), dbPassword(password), dbPort(port), con(0),
-	beautyProp(beautifyProperties), allProp(allProperties)
+	beautyProp(beautifyProperties), allProp(allProperties), rotate(monthlyRotate)
 {
 	int i;
 

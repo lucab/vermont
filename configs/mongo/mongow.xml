@@ -82,6 +82,7 @@
   	<bufferobjects>5</bufferobjects>
   	<port>27017</port>
     <beautifyProperties />
+<!--    <monthlyRotate> --> <!-- Monthly split collections -->
     <properties>
       <name>dstIP</name>
       <name>srcIP</name>
