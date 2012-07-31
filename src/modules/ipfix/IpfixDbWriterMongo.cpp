@@ -415,7 +415,7 @@ int IpfixDbWriterMongo::writeToDb()
   if (rotate) {
 	  time_t t = time(0);
 	  struct tm * now = localtime( & t );
-	  rotation << "." << (now->tm_year + 1900) << "-" << boost::format("%|02|")%(now->tm_mon + 1);
+	  rotation << ".m" << (now->tm_year + 1900) << "_" << boost::format("%|02|")%(now->tm_mon + 1);
 
   }
   con.insert(dbCollectionFlows + rotation.str(), bufferedObjects);
